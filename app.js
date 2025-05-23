@@ -2,38 +2,29 @@
 import 'dotenv/config';
 import simpleGit from 'simple-git';
 import { ChatGroq } from '@langchain/groq';
+import OpenAI from 'openai';
 import ora from 'ora';
 
 const git = simpleGit();
 
-// Check if GROQ API key exists
-if (!process.env.GROQ_API_KEY) {
-  console.error('Error: GROQ_API_KEY is not set in your environment variables');
-  process.exit(1);
-}
-
-const model = new ChatGroq({
-  model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-  temperature: 0.7,
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-async function getGitDiff() {
-  return await git.diff(['--cached']);
-}
-
-async function generateCommit(diff) {
-  if (!diff.trim()) {
-    throw new Error(
-      'No staged changes found. Please stage your changes before running.'
-    );
+class GroqModel {
+  constructor(apiKey) {
+    this.model = new ChatGroq({
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      temperature: 0.7,
+      apiKey,
+    });
   }
 
-  try {
-    const response = await model.invoke([
+  async generateCommitMessage(diff) {
+    const response = await this.model.invoke([
       {
         role: 'system',
-        content: `You are an expert AI assistant specialized in generating clear, concise, and conventional git commit messages.\nFollow the conventional commits specification (feat, fix, docs, chore, refactor, etc.).\nSummarize the important changes from the provided git diff.\nUse bullet points if multiple points are relevant.\nThe commit message should be understandable by developers looking at the project history.`,
+        content: `You are an expert AI assistant specialized in generating clear, concise, and conventional git commit messages.
+Follow the conventional commits specification (feat, fix, docs, chore, refactor, etc.).
+Summarize the important changes from the provided git diff.
+Use bullet points if multiple points are relevant.
+The commit message should be understandable by developers looking at the project history.`,
       },
       {
         role: 'user',
@@ -41,17 +32,63 @@ async function generateCommit(diff) {
       },
     ]);
     return response.content;
-  } catch (error) {
-    if (
-      error.message.includes('unauthorized') ||
-      error.message.includes('invalid api key')
-    ) {
-      throw new Error(
-        'Invalid or expired GROQ API key. Please check your credentials.'
-      );
-    }
-    throw error;
   }
+}
+
+class QwenModel {
+  constructor(apiKey) {
+    this.openAI = new OpenAI({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey,
+    });
+  }
+
+  async generateCommitMessage(diff) {
+    const response = await this.openAI.chat.completions.create({
+      model: 'qwen/qwen3-235b-a22b',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert AI assistant specialized in generating clear, concise, and conventional git commit messages.
+Follow the conventional commits specification (feat, fix, docs, chore, refactor, etc.).
+Summarize the important changes from the provided git diff.
+Use bullet points if multiple points are relevant.
+The commit message should be understandable by developers looking at the project history.`,
+        },
+        {
+          role: 'user',
+          content: `Git diff:\n${diff}`,
+        },
+      ],
+    });
+
+    return response.choices[0].message.content;
+  }
+}
+
+function createModel(provider) {
+  switch (provider) {
+    case 'groq':
+      if (!process.env.GROQ_API_KEY) {
+        throw new Error(
+          'GROQ_API_KEY is not set in your environment variables'
+        );
+      }
+      return new GroqModel(process.env.GROQ_API_KEY);
+    case 'qwen':
+      if (!process.env.QWEN_API_KEY) {
+        throw new Error(
+          'QWEN_API_KEY is not set in your environment variables'
+        );
+      }
+      return new QwenModel(process.env.QWEN_API_KEY);
+    default:
+      throw new Error(`Unsupported MODEL_PROVIDER: ${provider}`);
+  }
+}
+
+async function getStagedDiff() {
+  return git.diff(['--cached']);
 }
 
 function createSpinner(text) {
@@ -64,40 +101,53 @@ function createSpinner(text) {
   }).start();
 }
 
-async function getGitDiffWithSpinner() {
-  const spinner = createSpinner('Getting staged git diff...');
-  try {
-    const diff = await getGitDiff();
-    spinner.succeed('Git diff loaded!');
-    return diff;
-  } catch (err) {
-    spinner.fail('Failed to get git diff: ' + err.message);
-    throw err;
-  }
-}
-
-async function generateCommitWithSpinner(diff) {
-  const spinner = createSpinner('Generating commit message with AI...');
-  try {
-    const commitMessage = await generateCommit(diff);
-    spinner.succeed('Commit message generated!');
-    return commitMessage;
-  } catch (err) {
-    spinner.fail('Failed to generate commit message: ' + err.message);
-    throw err;
-  }
-}
-
 async function main() {
+  const provider = (process.env.MODEL_PROVIDER || 'groq').toLowerCase();
+
+  let model;
   try {
-    const diff = await getGitDiffWithSpinner();
-    const commitMessage = await generateCommitWithSpinner(diff);
-    console.log('\nGenerated commit message:\n');
-    console.log(commitMessage);
-    process.exit(0); // Exit successfully
+    model = createModel(provider);
   } catch (err) {
-    console.error(err.message);
-    process.exit(1); // Exit with error
+    console.error(`Error initializing model: ${err.message}`);
+    process.exit(1);
+  }
+
+  let diff;
+  const spinnerDiff = createSpinner('Retrieving staged git diff...');
+  try {
+    diff = await getStagedDiff();
+    spinnerDiff.succeed('Staged git diff retrieved!');
+  } catch (err) {
+    spinnerDiff.fail(`Failed to retrieve git diff: ${err.message}`);
+    process.exit(1);
+  }
+
+  if (!diff.trim()) {
+    console.error(
+      'No staged changes found. Please stage your changes before running.'
+    );
+    process.exit(1);
+  }
+
+  const spinnerCommit = createSpinner('Generating commit message using AI...');
+  try {
+    const commitMessage = await model.generateCommitMessage(diff);
+    spinnerCommit.succeed('Commit message generated successfully!\n');
+    console.log(commitMessage);
+    process.exit(0);
+  } catch (err) {
+    spinnerCommit.fail(`Failed to generate commit message: ${err.message}`);
+
+    if (
+      err.message.toLowerCase().includes('unauthorized') ||
+      err.message.toLowerCase().includes('invalid api key')
+    ) {
+      console.error(
+        'Invalid or expired API key detected. Please check your credentials.'
+      );
+    }
+
+    process.exit(1);
   }
 }
 

@@ -6,6 +6,9 @@
   "bin": {
     "commit-buddy": "app.js"
   },
+  "scripts": {
+    "dev": "node --watch --env-file=.env app.js"
+  },
   "type": "module",
   "author": "Youssef mansouri <contact.mansouriyoussef@gmail.com>",
   "license": "MIT",
@@ -21,6 +24,7 @@
     "conventional-commits"
   ],
   "dependencies": {
+    "@langchain/deepseek": "^0.0.1",
     "@langchain/groq": "^0.2.2",
     "@langchain/openai": "^0.5.11",
     "dotenv": "^16.5.0",
