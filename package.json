@@ -16,6 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/youssef-of-web/commit-buddy.git"
   },
+  "homepage": "https://github.com/youssef-of-web/commit-buddy.git#readme",
   "keywords": [
     "git",
     "commit",
