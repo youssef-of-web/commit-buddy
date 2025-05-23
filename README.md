@@ -78,6 +78,13 @@ OPEN_ROUTER_API_KEY=your-qwen-api-key-here
 
 ---
 
+3. **Optional:**
+   Model Provider
+   By default, commit-buddy uses Groq's LLM API. You can also use Qwen by setting the environment variable.
+   ```env
+   MODEL_PROVIDER=qwen
+   ```
+
 ## 📝 Example
 
 ```bash
