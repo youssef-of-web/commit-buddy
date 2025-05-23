@@ -71,7 +71,10 @@ OPEN_ROUTER_API_KEY=your-qwen-api-key-here
    - Or set the environment variable directly in your shell.
 
 2. **Qwen API Key:**
-   Go to openrouter.ai and generate an API key.
+   Go to openrouter.ai.
+   Click Models and select (qwen/qwen3-235b-a22b Free Tier)
+   Generate an API key
+
    ```env
    OPEN_ROUTER_API_KEY=your-qwen-api-key-here
    ```

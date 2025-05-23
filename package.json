@@ -1,7 +1,7 @@
 {
   "name": "commit-buddy",
   "version": "1.0.3",
-  "description": "AI-powered CLI for generating Conventional Commits from staged git changes.",
+  "description": "AI-poweredddd CLI for generating Conventional Commits from staged git changes.",
   "main": "app.js",
   "bin": {
     "commit-buddy": "app.js"
