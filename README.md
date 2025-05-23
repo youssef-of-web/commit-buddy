@@ -54,12 +54,27 @@ pnpm add -g commit-buddy
 
 ## 🛠️ Configuration
 
+Create a `.env` file in your project root to configure your API keys:
+
+```env
+GROQ_API_KEY=your-groq-api-key-here
+OPEN_ROUTER_API_KEY=your-qwen-api-key-here
+```
+
 1. **Groq API Key:**
-   - Create a `.env` file in your project root:
-     ```env
-     GROQ_API_KEY=your-groq-api-key-here
-     ```
+   Go to your [Groq Console](your [Groq Console](https://groq.com) and generate an API key.
+
+   ```env
+   GROQ_API_KEY=your-groq-api-key-here
+   ```
+
    - Or set the environment variable directly in your shell.
+
+2. **Qwen API Key:**
+   Go to openrouter.ai and generate an API key.
+   ```env
+   OPEN_ROUTER_API_KEY=your-qwen-api-key-here
+   ```
 
 ---
 

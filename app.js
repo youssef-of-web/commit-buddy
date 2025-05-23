@@ -76,12 +76,12 @@ function createModel(provider) {
       }
       return new GroqModel(process.env.GROQ_API_KEY);
     case 'qwen':
-      if (!process.env.QWEN_API_KEY) {
+      if (!process.env.OPEN_ROUTER_API_KEY) {
         throw new Error(
-          'QWEN_API_KEY is not set in your environment variables'
+          'OPEN_ROUTER_API_KEY is not set in your environment variables'
         );
       }
-      return new QwenModel(process.env.QWEN_API_KEY);
+      return new QwenModel(process.env.OPEN_ROUTER_API_KEY);
     default:
       throw new Error(`Unsupported MODEL_PROVIDER: ${provider}`);
   }
@@ -106,7 +106,7 @@ async function main() {
 
   let model;
   try {
-    model = createModel(provider);
+    model = createModel(provider ?? 'groq');
   } catch (err) {
     console.error(`Error initializing model: ${err.message}`);
     process.exit(1);
