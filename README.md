@@ -2,7 +2,7 @@
 
 **AI-powered Conventional Commit Generator for Groq**
 
-[![Demo video](https://github.com/youssef-of-web/commit-buddy/blob/main/assets/demo.mp4)](https://github.com/youssef-of-web/commit-buddy/blob/main/assets/demo.mp4)
+[![Demo video](./assets/demo.gif)](./assets/demo.gif)
 
 `commit-buddy` is a CLI tool that leverages Groq's blazing-fast LLMs to generate Conventional Commit messages from your staged git changes. Save time, stay consistent, and let AI handle your commit messages!
 
