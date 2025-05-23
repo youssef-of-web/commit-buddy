@@ -1,0 +1,32 @@
+{
+  "name": "commit-buddy",
+  "version": "1.0.2",
+  "description": "AI-powered CLI for generating Conventional Commits from staged git changes.",
+  "main": "app.js",
+  "bin": {
+    "commit-buddy": "app.js"
+  },
+  "type": "module",
+  "author": "Youssef mansouri <contact.mansouriyoussef@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youssef-of-web/commit-buddy.git"
+  },
+  "keywords": [
+    "git",
+    "commit",
+    "ai",
+    "cli",
+    "conventional-commits"
+  ],
+  "dependencies": {
+    "@langchain/groq": "^0.2.2",
+    "@langchain/openai": "^0.5.11",
+    "dotenv": "^16.5.0",
+    "langchain": "^0.3.27",
+    "openai": "^4.103.0",
+    "ora": "^8.2.0",
+    "simple-git": "^3.27.0"
+  }
+}
